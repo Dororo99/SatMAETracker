@@ -1,6 +1,9 @@
 import os.path as osp
 import os
-import av2.geometry.interpolate as interp_utils
+try:
+    import av2.geometry.interpolate as interp_utils
+except (ImportError, TypeError):
+    interp_utils = None
 import numpy as np
 import copy
 import cv2

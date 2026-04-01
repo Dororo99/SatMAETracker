@@ -1,0 +1,3 @@
+[submodule "MapStableTest"]
+	path = MapStableTest
+	url = https://github.com/bhsh0112/MapStableTest.git

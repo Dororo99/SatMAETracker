@@ -4,3 +4,4 @@ from .spatial_cross_attention import SpatialCrossAttention, MSDeformableAttentio
 from .temporal_self_attention import TemporalSelfAttention
 from .transformer import PerceptionTransformer
 from .temporal_net import TemporalNet
+from .sat_encoder import BEVFormerEncoderWithSat, BEVFormerLayerWithSat

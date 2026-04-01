@@ -1,5 +1,7 @@
+import os
 import mmcv
 import numpy as np
+from PIL import Image
 from mmdet.datasets.builder import PIPELINES
 
 @PIPELINES.register_module(force=True)
@@ -58,3 +60,38 @@ class LoadMultiViewImagesFromFiles(object):
         """str: Return a string that describes the module."""
         return f'{self.__class__.__name__} (to_float32={self.to_float32}, '\
             f"color_type='{self.color_type}')"
+
+
+@PIPELINES.register_module(force=True)
+class LoadAID4ADSatelliteImage(object):
+    """Load satellite image from AID4AD dataset."""
+
+    def __init__(self, sat_root, img_size=(200, 100), normalize=True):
+        self.img_size = img_size
+        self.normalize = normalize
+        self.token2file = {}
+        for loc in os.listdir(sat_root):
+            loc_dir = os.path.join(sat_root, loc)
+            if not os.path.isdir(loc_dir):
+                continue
+            for fname in os.listdir(loc_dir):
+                if not fname.endswith('.png'):
+                    continue
+                token = fname.split('_', 1)[1].replace('.png', '')
+                self.token2file[token] = os.path.join(loc_dir, fname)
+        print(f'LoadAID4ADSatelliteImage: indexed {len(self.token2file)} frames')
+
+    def __call__(self, results):
+        token = results['token']
+        if token in self.token2file:
+            img = Image.open(self.token2file[token]).convert('RGB')
+            img = img.resize(self.img_size, Image.LANCZOS)
+            img = np.array(img, dtype=np.float32)
+            if self.normalize:
+                img = img / 255.0
+            img = img.transpose(2, 0, 1)
+            results['sat_img'] = img
+        else:
+            h, w = self.img_size[1], self.img_size[0]
+            results['sat_img'] = np.zeros((3, h, w), dtype=np.float32)
+        return results
