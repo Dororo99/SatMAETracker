@@ -46,6 +46,7 @@ class BEVFormerLayerWithSat(MyCustomBaseTransformerLayer):
                  norm_cfg=dict(type='LN'),
                  ffn_num_fcs=2,
                  sat_gate_init=0.0,
+                 sat_fusion_mode='gate',
                  **kwargs):
         super().__init__(
             attn_cfgs=attn_cfgs,
@@ -60,7 +61,11 @@ class BEVFormerLayerWithSat(MyCustomBaseTransformerLayer):
         assert len(operation_order) == 8, \
             f'BEVFormerLayerWithSat expects 8 operations, got {len(operation_order)}'
 
-        # Learnable gate: sigmoid(-3)≈0.05, starts near-zero, can only go [0,1]
+        assert sat_fusion_mode in ('gate', 'add'), \
+            f'sat_fusion_mode must be "gate" or "add", got "{sat_fusion_mode}"'
+        self.sat_fusion_mode = sat_fusion_mode
+
+        # Learnable gate (only used when sat_fusion_mode='gate')
         self.sat_gate = nn.Parameter(torch.tensor(float(sat_gate_init)))
 
     def forward(self,
@@ -132,8 +137,11 @@ class BEVFormerLayerWithSat(MyCustomBaseTransformerLayer):
                             query_pos=bev_pos,
                             key_pos=sat_pos,
                             attn_mask=attn_masks[attn_index])
-                        gate = torch.sigmoid(self.sat_gate)
-                        query = (1 - gate) * query + gate * sat_out
+                        if self.sat_fusion_mode == 'gate':
+                            gate = torch.sigmoid(self.sat_gate)
+                            query = (1 - gate) * query + gate * sat_out
+                        else:  # 'add'
+                            query = query + sat_out
 
                         # Store attention weights for visualization (no grad, no overhead at train)
                         if getattr(self, '_store_attn_map', False):

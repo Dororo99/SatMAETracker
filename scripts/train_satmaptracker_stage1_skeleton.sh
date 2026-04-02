@@ -2,9 +2,12 @@
 # SatMapTracker Stage1 BEV Pretrain with Skeleton-Recall Loss
 #
 # Usage:
-#   bash scripts/train_satmaptracker_stage1_skeleton.sh                    # default (skeleton ON)
+#   bash scripts/train_satmaptracker_stage1_skeleton.sh                    # default (all ON)
 #   bash scripts/train_satmaptracker_stage1_skeleton.sh --no-skeleton      # skeleton OFF
-#   bash scripts/train_satmaptracker_stage1_skeleton.sh --skel-weight 2.0  # custom weight
+#   bash scripts/train_satmaptracker_stage1_skeleton.sh --no-cross-attn    # early fusion OFF
+#   bash scripts/train_satmaptracker_stage1_skeleton.sh --no-conv-fusion   # late fusion OFF
+#   bash scripts/train_satmaptracker_stage1_skeleton.sh --sat-gate -1.0    # cross-attn gate init
+#   bash scripts/train_satmaptracker_stage1_skeleton.sh --fusion-gate -1.0 # conv fusion gate init
 #   bash scripts/train_satmaptracker_stage1_skeleton.sh --gpus 4,5,6,7     # custom GPUs
 #   bash scripts/train_satmaptracker_stage1_skeleton.sh --wandb-name my_exp # custom wandb name
 
@@ -19,6 +22,11 @@ MASTER_PORT=29571
 USE_SKELETON=true
 SKEL_WEIGHT=1.0
 SKEL_CLASSES="[1,2]"
+USE_CROSS_ATTN=true
+SAT_FUSION_MODE=gate
+SAT_GATE_INIT=-1.0
+USE_CONV_FUSION=true
+FUSION_GATE_INIT=-1.0
 BEV_VIS_INTERVAL=500
 WANDB_ENTITY="IRCV_Mapping"
 WANDB_PROJECT="Third-SatMAE_MapTracker-AID4AD-seonghyun"
@@ -42,6 +50,21 @@ while [[ $# -gt 0 ]]; do
             shift ;;
         --skel-weight)
             SKEL_WEIGHT="$2"
+            shift 2 ;;
+        --no-cross-attn)
+            USE_CROSS_ATTN=false
+            shift ;;
+        --sat-fusion-mode)
+            SAT_FUSION_MODE="$2"
+            shift 2 ;;
+        --sat-gate)
+            SAT_GATE_INIT="$2"
+            shift 2 ;;
+        --no-conv-fusion)
+            USE_CONV_FUSION=false
+            shift ;;
+        --fusion-gate)
+            FUSION_GATE_INIT="$2"
             shift 2 ;;
         --bev-vis-interval)
             BEV_VIS_INTERVAL="$2"
@@ -77,6 +100,29 @@ else
     echo "[Config] Skeleton-Recall Loss: OFF"
 fi
 
+# Cross-attention (early fusion) control
+if [ "$USE_CROSS_ATTN" = true ]; then
+    CFG_OPTIONS+=" --cfg-options model.backbone_cfg.transformer.encoder.transformerlayers.sat_fusion_mode=${SAT_FUSION_MODE}"
+    if [ "$SAT_FUSION_MODE" = "gate" ]; then
+        CFG_OPTIONS+=" --cfg-options model.backbone_cfg.transformer.encoder.transformerlayers.sat_gate_init=${SAT_GATE_INIT}"
+        echo "[Config] Cross-Attention (Early Fusion): ON (mode=gate, init=${SAT_GATE_INIT}, sigmoid≈$(python3 -c "import math; print(f'{1/(1+math.exp(-${SAT_GATE_INIT})):.0%}')"))"
+    else
+        echo "[Config] Cross-Attention (Early Fusion): ON (mode=add)"
+    fi
+else
+    CFG_OPTIONS+=" --cfg-options model.sat_encoder_cfg=None"
+    echo "[Config] Cross-Attention (Early Fusion): OFF"
+fi
+
+# Conv fusion (late fusion) control
+if [ "$USE_CONV_FUSION" = true ]; then
+    CFG_OPTIONS+=" --cfg-options model.conv_fusion_cfg.gate_init=${FUSION_GATE_INIT}"
+    echo "[Config] Conv Fusion (Late Fusion): ON (gate_init=${FUSION_GATE_INIT}, sigmoid≈$(python3 -c "import math; print(f'{1/(1+math.exp(-${FUSION_GATE_INIT})):.0%}')"))"
+else
+    CFG_OPTIONS+=" --cfg-options model.conv_fusion_cfg=None"
+    echo "[Config] Conv Fusion (Late Fusion): OFF"
+fi
+
 # WandB settings
 CFG_OPTIONS+=" --cfg-options log_config.hooks.1.init_kwargs.entity=${WANDB_ENTITY}"
 CFG_OPTIONS+=" --cfg-options log_config.hooks.1.init_kwargs.project=${WANDB_PROJECT}"
@@ -94,6 +140,9 @@ echo "============================================"
 echo " GPUs:          ${GPUS} (${NUM_GPUS} devices)"
 echo " Master Port:   ${MASTER_PORT}"
 echo " Config:        ${CONFIG}"
+echo " Cross-Attn:    ${USE_CROSS_ATTN} (mode=${SAT_FUSION_MODE}, gate=${SAT_GATE_INIT})"
+echo " Conv Fusion:   ${USE_CONV_FUSION} (gate=${FUSION_GATE_INIT})"
+echo " Skeleton:      ${USE_SKELETON} (weight=${SKEL_WEIGHT})"
 echo " WandB:         ${WANDB_PROJECT} / ${WANDB_NAME}"
 echo " BEV Vis:       every ${BEV_VIS_INTERVAL} iters"
 echo "============================================"

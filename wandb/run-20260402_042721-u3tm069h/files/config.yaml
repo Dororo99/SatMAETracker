@@ -1,0 +1,118 @@
+_wandb:
+    value:
+        cli_version: 0.24.2
+        e:
+            zhwtbtzm8eo8hp6wcua0s4t1folfct5d:
+                args:
+                    - --local_rank=0
+                    - plugin/configs/maptracker/nuscenes_newsplit/satmaptracker_stage1_bev_pretrain.py
+                    - --launcher
+                    - pytorch
+                    - --cfg-options
+                    - model.seg_cfg.loss_skel.type=SkelRecallLoss
+                    - --cfg-options
+                    - model.seg_cfg.loss_skel.loss_weight=1.0
+                    - --cfg-options
+                    - model.seg_cfg.loss_skel.skel_classes=[1,2]
+                    - --cfg-options
+                    - log_config.hooks.1.init_kwargs.entity=IRCV_Mapping
+                    - --cfg-options
+                    - log_config.hooks.1.init_kwargs.project=Third-SatMAE_MapTracker-AID4AD-seonghyun
+                    - --cfg-options
+                    - log_config.hooks.1.init_kwargs.name=SatMAETracker_sig25_skeleton
+                    - --cfg-options
+                    - custom_hooks.0.interval=500
+                codePath: tools/train.py
+                codePathLocal: tools/train.py
+                cpu_count: 64
+                cpu_count_logical: 128
+                cudaVersion: "12.8"
+                disk:
+                    /:
+                        total: "2199023255552"
+                        used: "925468229632"
+                email: tnrud17@hanyang.ac.kr
+                executable: /venv/maptracker/bin/python
+                git:
+                    commit: 92ff597f1ad475d51487b2142bd8a0c3e3d16b0b
+                    remote: https://github.com/woodfrog/maptracker
+                gpu: NVIDIA GeForce RTX 4090
+                gpu_count: 8
+                gpu_nvidia:
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-8e85fc8b-ac14-146a-ebca-4cc434a5ccdb
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-67e6983b-76c4-ce32-c820-e50adb54e49c
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-f8c9b54f-0951-070b-5fbf-e4cfc2400b80
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-2e87af56-a66d-0c06-b8c8-2e75d10e32f9
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-8e47d1fa-04a1-e46d-429d-26d8d1f317f9
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-b3865de4-6329-0a82-f6e9-dec50e5b265b
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-55e71e86-9e46-595b-abc9-c81babf07292
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "51527024640"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-8a7ece3d-78fe-f872-c32b-d0e2d1410e31
+                host: 6ef4bfd2fa54
+                memory:
+                    total: "811433181184"
+                os: Linux-6.8.0-40-generic-x86_64-with-glibc2.17
+                program: tools/train.py
+                python: CPython 3.8.20
+                root: /workspace/dohyun/sat_maptracker
+                startedAt: "2026-04-02T04:27:21.697495Z"
+                writerId: zhwtbtzm8eo8hp6wcua0s4t1folfct5d
+        m: []
+        python_version: 3.8.20
+        t:
+            "1":
+                - 1
+                - 5
+                - 37
+                - 38
+                - 41
+                - 53
+                - 60
+            "2":
+                - 1
+                - 5
+                - 37
+                - 38
+                - 41
+                - 53
+                - 60
+            "3":
+                - 13
+                - 61
+            "4": 3.8.20
+            "5": 0.24.2
+            "8":
+                - 2
+            "12": 0.24.2
+            "13": linux-x86_64
